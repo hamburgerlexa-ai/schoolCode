@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ assignment.title }} | Образовательная платформа</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="assignment-page">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <svg width="40" height="40" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="60" height="60" rx="12" fill="url(#gradient)"/>
+                    <path d="M15 20L30 35L45 20" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="30" cy="40" r="5" fill="white"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="60" y2="60">
+                            <stop stop-color="#667EEA"/>
+                            <stop offset="1" stop-color="#764BA2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>Образовательная платформа</span>
+            </div>
+            <div class="nav-user">
+                <span class="user-name">{{ student_name }}</span>
+                <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline btn-sm">Назад</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container assignment-container">
+        <div class="assignment-header">
+            <div>
+                <h1>{{ assignment.title }}</h1>
+                <p class="assignment-description">{{ assignment.description }}</p>
+            </div>
+            <div class="assignment-timer">
+                <div class="timer-display">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span id="timeElapsed">00:00</span>
+                </div>
+                <div class="tab-switches-display" id="tabSwitchesDisplay" style="display: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <span id="tabSwitchesCount">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning" id="warningAlert" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <span>Внимание! Переключение вкладок фиксируется системой.</span>
+        </div>
+
+        <div class="code-editor-wrapper">
+            <div class="editor-header">
+                <span>Редактор кода Python</span>
+                <div class="editor-actions">
+                    <button type="button" class="btn btn-outline btn-sm" id="autoSaveBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 7 13 7 21"/>
+                            <polyline points="7 3 7 8 15 8"/>
+                        </svg>
+                        Автосохранение: вкл
+                    </button>
+                </div>
+            </div>
+            <textarea id="codeEditor" class="code-editor" spellcheck="false">{{ existing_code }}</textarea>
+        </div>
+
+        <div class="submission-panel">
+            <div class="submission-info">
+                <p><strong>Важно:</strong> Система отслеживает переключение вкладок и другие подозрительные действия. 
+                   Будьте внимательны во время выполнения задания!</p>
+            </div>
+            <button type="button" class="btn btn-primary btn-lg" id="submitBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                Сохранить работу
+            </button>
+        </div>
+    </main>
+
+    <div class="modal" id="submitModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Подтверждение отправки</h2>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите сохранить свою работу?</p>
+                <div class="submission-summary">
+                    <div class="summary-item">
+                        <span>Время выполнения:</span>
+                        <strong id="summaryTime">00:00</strong>
+                    </div>
+                    <div class="summary-item">
+                        <span>Переключений вкладок:</span>
+                        <strong id="summarySwitches">0</strong>
+                    </div>
+                </div>
+                {% if existing_code %}
+                <p class="update-notice">Это обновление вашей предыдущей работы.</p>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" id="cancelSubmit">Отмена</button>
+                <button type="button" class="btn btn-primary" id="confirmSubmit">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" style="display: none;">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/assignment.js') }}"></script>
+    <script>
+        const ASSIGNMENT_ID = {{ assignment.id }};
+        const STUDENT_NAME = "{{ student_name }}";
+    </script>
+</body>
+</html>

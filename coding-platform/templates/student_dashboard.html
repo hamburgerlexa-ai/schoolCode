@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Панель ученика{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1>Панель ученика</h1>
+        <div class="user-info">
+            <span>{{ current_user.username }} ({{ current_user.class_name }})</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">Выйти</a>
+        </div>
+    </div>
+    
+    <div class="assignments-list">
+        <h2>Доступные задания</h2>
+        {% if assignments %}
+            <div class="assignments-grid">
+                {% for assignment in assignments %}
+                <div class="assignment-card {% if assignment.id in completed_ids %}completed{% endif %}">
+                    <div class="card-header">
+                        <h3>{{ assignment.title }}</h3>
+                        {% if assignment.id in completed_ids %}
+                            <span class="status-badge completed">✓ Выполнено</span>
+                        {% else %}
+                            <span class="status-badge pending">⏳ К выполнению</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-body">
+                        <p class="description">{{ assignment.description[:150] }}{% if assignment.description|length > 150 %}...{% endif %}</p>
+                        
+                        <div class="assignment-meta">
+                            <span class="badge">{{ assignment.language }}</span>
+                            <span>⏱ {{ assignment.duration_minutes }} мин.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        {% if assignment.id in completed_ids %}
+                            <span class="completed-text">Работа отправлена на проверку</span>
+                        {% else %}
+                            <a href="{{ url_for('do_assignment', assignment_id=assignment.id) }}" class="btn btn-primary">Начать выполнение</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-state">Нет доступных заданий для вашего класса.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

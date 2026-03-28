@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Панель учителя{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="dashboard-header">
+        <h1>Панель учителя</h1>
+        <div class="user-info">
+            <span>{{ current_user.username }}</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-secondary">Выйти</a>
+        </div>
+    </div>
+    
+    <div class="dashboard-actions">
+        <a href="{{ url_for('create_assignment') }}" class="btn btn-primary btn-lg">Создать задание</a>
+        <a href="{{ url_for('teacher_monitoring') }}" class="btn btn-info btn-lg">Мониторинг класса</a>
+    </div>
+    
+    <div class="assignments-list">
+        <h2>Ваши задания</h2>
+        {% if assignments %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Класс</th>
+                        <th>Время (мин)</th>
+                        <th>Дата создания</th>
+                        <th>Работ</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in assignments %}
+                    <tr>
+                        <td>{{ assignment.title }}</td>
+                        <td>{{ assignment.class_name or 'Все' }}</td>
+                        <td>{{ assignment.duration_minutes }}</td>
+                        <td>{{ assignment.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                        <td>{{ assignment.submissions|length }}</td>
+                        <td>
+                            <a href="{{ url_for('view_assignment', assignment_id=assignment.id) }}" class="btn btn-sm btn-primary">Просмотреть</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="empty-state">У вас пока нет заданий. Создайте первое задание!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
