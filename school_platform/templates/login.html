@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Образовательная платформа</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="60" height="60" rx="12" fill="url(#gradient)"/>
+                        <path d="M15 20L30 35L45 20" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="30" cy="40" r="5" fill="white"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0" y1="0" x2="60" y2="60">
+                                <stop stop-color="#667EEA"/>
+                                <stop offset="1" stop-color="#764BA2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1>Образовательная платформа</h1>
+                <p>Войдите для продолжения</p>
+            </div>
+
+            {% if error %}
+            <div class="alert alert-error">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{{ url_for('login') }}" class="login-form">
+                <div class="role-selector">
+                    <label class="role-option">
+                        <input type="radio" name="role" value="student" checked>
+                        <span class="role-label">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            Ученик
+                        </span>
+                    </label>
+                    <label class="role-option">
+                        <input type="radio" name="role" value="teacher">
+                        <span class="role-label">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                            </svg>
+                            Учитель
+                        </span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" id="username" name="username" required autocomplete="username" placeholder="Введите ваш логин">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Введите ваш пароль">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Войти
+                </button>
+            </form>
+
+            <div class="login-info">
+                <p><strong>Для учеников:</strong> логин: ivanov, petrov, sidorov | пароль: 123</p>
+                <p><strong>Для учителя:</strong> логин: teacher | пароль: admin123</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Проверка работы{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="grading-page">
+    <div class="grading-header">
+        <a href="{{ url_for('view_assignment', assignment_id=submission.assignment.id) }}" class="back-link">← Назад к работам</a>
+        <h1>Проверка работы</h1>
+        <div class="student-info">
+            <strong>Ученик:</strong> {{ submission.student.username }}
+            <strong>Класс:</strong> {{ submission.student.class_name }}
+        </div>
+    </div>
+    
+    <div class="grading-content">
+        <div class="code-section">
+            <h2>Код ученика</h2>
+            <textarea id="code-editor">{{ submission.code }}</textarea>
+            
+            <div class="submission-stats">
+                <div class="stat">
+                    <span class="stat-label">Время выполнения:</span>
+                    <span class="stat-value">{{ submission.time_spent_seconds // 60 }} мин.</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Нарушений:</span>
+                    <span class="stat-value {% if submission.violations_count > 0 %}warning{% endif %}">{{ submission.violations_count }}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Отправлено:</span>
+                    <span class="stat-value">{{ submission.submitted_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grade-section">
+            <h2>Оценка и комментарий</h2>
+            <form method="POST" class="grade-form">
+                <div class="form-group">
+                    <label for="score">Оценка (0-100)</label>
+                    <input type="number" id="score" name="score" min="0" max="100" value="{{ submission.score or '' }}" placeholder="0-100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="feedback">Комментарий</label>
+                    <textarea id="feedback" name="feedback" rows="6" placeholder="Напишите комментарий для ученика...">{{ submission.feedback or '' }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg">Сохранить оценку</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="activity-log-section">
+        <h2>Журнал активности ({{ activity_logs|length }} событий)</h2>
+        
+        {% if activity_logs %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Время</th>
+                        <th>Событие</th>
+                        <th>Детали</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in activity_logs %}
+                    <tr class="{% if log.event_type in ['tab_switch', 'blur'] %}warning-row{% endif %}">
+                        <td>{{ log.timestamp.strftime('%H:%M:%S') }}</td>
+                        <td>
+                            <span class="event-type event-{{ log.event_type }}">
+                                {% if log.event_type == 'tab_switch' %}
+                                    🚫 Переключение вкладки
+                                {% elif log.event_type == 'blur' %}
+                                    ⚠️ Потеря фокуса
+                                {% elif log.event_type == 'copy' %}
+                                    📋 Копирование
+                                {% elif log.event_type == 'idle' %}
+                                    💤 Бездействие
+                                {% else %}
+                                    {{ log.event_type }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>{{ log.details or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="empty-state">Нет записей об активности</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+<script>
+    var editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+        mode: '{{ submission.assignment.language }}',
+        theme: 'dracula',
+        lineNumbers: true,
+        readOnly: true,
+        matchBrackets: true
+    });
+</script>
+{% endblock %}

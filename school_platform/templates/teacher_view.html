@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка работ: {{ assignment.title }} | Образовательная платформа</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="teacher-view-page">
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <svg width="40" height="40" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="60" height="60" rx="12" fill="url(#gradient)"/>
+                    <path d="M15 20L30 35L45 20" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="30" cy="40" r="5" fill="white"/>
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="60" y2="60">
+                            <stop stop-color="#667EEA"/>
+                            <stop offset="1" stop-color="#764BA2"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span>Образовательная платформа</span>
+            </div>
+            <div class="nav-user">
+                <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-outline btn-sm">Назад к панели</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="page-header">
+            <div>
+                <h1>{{ assignment.title }}</h1>
+                <p class="assignment-description">{{ assignment.description }}</p>
+            </div>
+            <div class="submissions-count">
+                <span class="badge badge-primary">{{ submissions|length }} работ</span>
+            </div>
+        </div>
+
+        {% if submissions %}
+        <div class="submissions-list">
+            {% for sub in submissions %}
+            <div class="submission-card {% if sub.is_suspicious %}suspicious{% endif %}">
+                <div class="card-header">
+                    <div class="student-info">
+                        <div class="avatar">
+                            {{ sub.full_name[0] }}
+                        </div>
+                        <div>
+                            <h3>{{ sub.full_name }}</h3>
+                            <small>@{{ sub.username }}</small>
+                        </div>
+                    </div>
+                    <div class="submission-meta">
+                        {% if sub.is_suspicious %}
+                        <span class="badge badge-danger">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Подозрительно
+                        </span>
+                        {% else %}
+                        <span class="badge badge-success">Нормально</span>
+                        {% endif %}
+                        <span class="time-badge">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            {{ sub.submitted_at }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Время выполнения:</span>
+                        <span class="stat-value">{{ (sub.time_spent / 60)|int }} мин {{ sub.time_spent % 60 }} сек</span>
+                    </div>
+                    <div class="stat-item {% if sub.tab_switches > 3 %}stat-warning{% endif %}">
+                        <span class="stat-label">Переключений вкладок:</span>
+                        <span class="stat-value">{{ sub.tab_switches }}</span>
+                    </div>
+                    {% if sub.suspicious_details %}
+                    <div class="stat-item stat-warning">
+                        <span class="stat-label">Подозрительные действия:</span>
+                        <span class="stat-value">{{ sub.suspicious_details|length }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-actions">
+                    <a href="{{ url_for('teacher_view_submission', submission_id=sub.id) }}" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        Просмотреть код
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            <h3>Нет отправок</h3>
+            <p>Студенты еще не сдали работы по этому заданию</p>
+        </div>
+        {% endif %}
+    </main>
+</body>
+</html>

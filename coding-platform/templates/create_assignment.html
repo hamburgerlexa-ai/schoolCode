@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Создание задания{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Создать новое задание</h1>
+    <form method="POST" class="assignment-form">
+        <div class="form-group">
+            <label for="title">Название задания *</label>
+            <input type="text" id="title" name="title" required placeholder="Например: Работа с циклами">
+        </div>
+        
+        <div class="form-group">
+            <label for="class_name">Класс</label>
+            <input type="text" id="class_name" name="class_name" placeholder="Например: 9A (оставьте пустым для всех классов)">
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="language">Язык программирования</label>
+                <select id="language" name="language">
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="cpp">C++</option>
+                    <option value="java">Java</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="duration_minutes">Время выполнения (минут) *</label>
+                <input type="number" id="duration_minutes" name="duration_minutes" value="45" min="5" max="180" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Описание задания *</label>
+            <textarea id="description" name="description" rows="6" required placeholder="Опишите задачу, требования и критерии оценки..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="starter_code">Начальный код (шаблон)</label>
+            <textarea id="starter_code" name="starter_code" rows="10" placeholder="# Например:\n# def solve(n):\n#     # Ваш код здесь\n#     pass"></textarea>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-lg">Создать задание</button>
+            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
