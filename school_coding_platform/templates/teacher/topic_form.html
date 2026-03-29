@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{% if topic %}Редактировать тему{% else %}Новая тема{% endif %}{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>{% if topic %}Редактировать тему{% else %}Новая тема{% endif %}</h1>
+    <a href="{{ url_for('manage_topics') }}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="mt-4">
+    <form method="POST" class="card" style="max-width: 600px;">
+        <div class="form-group">
+            <label class="form-label">Название темы *</label>
+            <input type="text" name="title" class="form-control" 
+                   value="{{ topic.title if topic else '' }}" 
+                   required data-minlength="2" data-maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Описание</label>
+            <textarea name="description" class="form-control" rows="4" 
+                      data-maxlength="500">{{ topic.description if topic else '' }}</textarea>
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                {% if topic %}Сохранить изменения{% else %}Создать тему{% endif %}
+            </button>
+            <a href="{{ url_for('manage_topics') }}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

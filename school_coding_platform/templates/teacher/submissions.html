@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Работы учеников{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div>
+        <h1>Работы учеников</h1>
+        {% if assignment %}
+        <p class="text-muted mt-1">{{ assignment.title }}</p>
+        {% else %}
+        <p class="text-muted mt-1">Все работы по вашим заданиям</p>
+        {% endif %}
+    </div>
+    <a href="{{ url_for('manage_assignments') }}" class="btn btn-secondary">← Назад к заданиям</a>
+</div>
+
+<div class="mt-4">
+    {% if submissions %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Ученик</th>
+                    <th>Статус</th>
+                    <th>Начало</th>
+                    <th>Отправка</th>
+                    <th>Балл</th>
+                    <th>Подозрительность</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for submission in submissions %}
+                <tr>
+                    <td>
+                        <strong>{{ submission.user.full_name }}</strong>
+                        <br><small class="text-muted">{{ submission.user.username }}</small>
+                    </td>
+                    <td>
+                        {% if submission.status == 'graded' %}
+                            <span class="badge badge-success">Проверено</span>
+                        {% elif submission.status == 'submitted' %}
+                            <span class="badge badge-warning">На проверке</span>
+                        {% elif submission.status == 'draft' %}
+                            <span class="badge badge-muted">Черновик</span>
+                        {% elif submission.status == 'expired' %}
+                            <span class="badge badge-danger">Просрочено</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ formatDateTime(submission.started_at) }}</td>
+                    <td>
+                        {% if submission.submitted_at %}
+                            {{ formatDateTime(submission.submitted_at) }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if submission.score is not none %}
+                            <strong>{{ submission.score }}/{{ submission.max_score }}</strong>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="suspicion-meter" style="min-width: 150px;">
+                            <div class="suspicion-bar">
+                                {% set suspicion_class = 'suspicion-low' %}
+                                {% if submission.suspicion_score >= 70 %}
+                                    {% set suspicion_class = 'suspicion-high' %}
+                                {% elif submission.suspicion_score >= 30 %}
+                                    {% set suspicion_class = 'suspicion-medium' %}
+                                {% endif %}
+                                <div class="suspicion-fill {{ suspicion_class }}" 
+                                     style="width: {{ submission.suspicion_score }}%;"></div>
+                            </div>
+                            <span class="suspicion-value">{{ submission.suspicion_score }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex gap-1">
+                            <a href="{{ url_for('review_submission', submission_id=submission.id) }}" 
+                               class="btn btn-sm btn-primary" title="Проверить">📝</a>
+                            {% if submission.status == 'draft' %}
+                            <span class="btn btn-sm btn-secondary" title="Ещё выполняет">⏳</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Statistics -->
+    <div class="stats-grid mt-4">
+        <div class="stat-card">
+            <div class="stat-label">Всего работ</div>
+            <div class="stat-value">{{ submissions|length }}</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-label">Проверено</div>
+            <div class="stat-value">{{ submissions|selectattr('status', 'equalto', 'graded')|list|length }}</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-label">На проверке</div>
+            <div class="stat-value">{{ submissions|selectattr('status', 'equalto', 'submitted')|list|length }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Средний балл</div>
+            <div class="stat-value">
+                {% set graded = submissions|selectattr('score', 'defined')|selectattr('score', 'not none')|list %}
+                {% if graded %}
+                    {{ (graded|map(attribute='score')|sum / graded|length)|round(1) }}
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📝</div>
+        <h3 class="empty-state-title">Нет работ</h3>
+        <p class="empty-state-text">Ученики ещё не начали выполнять это задание</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

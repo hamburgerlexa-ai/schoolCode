@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Проверка работы{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div>
+        <h1>Проверка работы</h1>
+        <p class="text-muted mt-1">
+            {{ submission.user.full_name }} • {{ submission.assignment.title }}
+        </p>
+    </div>
+    <a href="{{ url_for('view_submissions', assignment_id=submission.assignment_id) }}" 
+       class="btn btn-secondary">← Назад к работам</a>
+</div>
+
+<div class="mt-4">
+    <div class="split-layout">
+        <!-- Code Panel -->
+        <div class="split-panel">
+            <h3 class="split-header">Код ученика</h3>
+            
+            {% if submission.code %}
+            <pre><code id="student-code">{{ submission.code }}</code></pre>
+            {% else %}
+            <div class="empty-state">
+                <p class="text-muted">Код не предоставлен</p>
+            </div>
+            {% endif %}
+            
+            <div class="flex gap-2 mt-3">
+                <button onclick="copyToClipboard(`{{ submission.code|e|replace('`', '\\`') }}`)" 
+                        class="btn btn-sm btn-secondary">
+                    📋 Копировать код
+                </button>
+            </div>
+        </div>
+
+        <!-- Grading Panel -->
+        <div class="split-panel">
+            <h3 class="split-header">Оценивание</h3>
+            
+            <form method="POST" action="{{ url_for('grade_submission', submission_id=submission.id) }}">
+                <div class="form-group">
+                    <label class="form-label">Статус</label>
+                    <select name="status" class="form-control" required>
+                        <option value="submitted" {% if submission.status == 'submitted' %}selected{% endif %}>На проверке</option>
+                        <option value="graded" {% if submission.status == 'graded' %}selected{% endif %}>Проверено</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Балл (из {{ submission.max_score }})</label>
+                    <input type="number" name="score" class="form-control" 
+                           value="{{ submission.score if submission.score is not none else '' }}"
+                           min="0" max="{{ submission.max_score }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Комментарий / Обратная связь</label>
+                    <textarea name="feedback" class="form-control" rows="6" 
+                              placeholder="Напишите комментарий для ученика...">{{ submission.feedback if submission.feedback else '' }}</textarea>
+                </div>
+
+                <!-- Activity Log -->
+                <div class="form-group">
+                    <label class="form-label">Журнал активности</label>
+                    <div class="timeline" style="max-height: 300px; overflow-y: auto;">
+                        {% set events = submission.activity_logs|sort(attribute='created_at', reverse=true) %}
+                        {% if events %}
+                            {% for event in events[:20] %}
+                            <div class="timeline-item {% if event.event_type in ['tab_switch', 'fullscreen_exit', 'devtools_attempt'] %}suspicious{% endif %}">
+                                <div class="timeline-time">{{ formatDateTime(event.created_at) }}</div>
+                                <div class="timeline-event">
+                                    {% if event.event_type == 'assignment_started' %}
+                                        🚀 Начал выполнение
+                                    {% elif event.event_type == 'tab_switch' %}
+                                        ⚠️ Переключение вкладки ({{ event.event_data }})
+                                    {% elif event.event_type == 'fullscreen_exit' %}
+                                        ⚠️ Выход из fullscreen
+                                    {% elif event.event_type == 'devtools_attempt' %}
+                                        ⚠️ Попытка открыть DevTools
+                                    {% elif event.event_type == 'autosave' %}
+                                        💾 Автосохранение
+                                    {% elif event.event_type == 'submit' %}
+                                        ✅ Отправка работы
+                                    {% else %}
+                                        {{ event.event_type }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted">Нет записей об активности</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Suspicion Summary -->
+                <div class="card mb-3" style="background: var(--bg-tertiary);">
+                    <h4 style="font-size: var(--font-sm); margin-bottom: var(--space-sm);">Метрики подозрительности</h4>
+                    <div class="flex items-center gap-2" style="margin-bottom: var(--space-sm);">
+                        <span class="text-muted">Общий балл:</span>
+                        <strong class="{% if submission.suspicion_score >= 70 %}text-danger{% elif submission.suspicion_score >= 30 %}text-warning{% else %}text-success{% endif %}">
+                            {{ submission.suspicion_score }}%
+                        </strong>
+                    </div>
+                    <div class="progress-container mb-2">
+                        <div class="progress-bar {% if submission.suspicion_score >= 70 %}danger{% elif submission.suspicion_score >= 30 %}warning{% else %}success{% endif %}" 
+                             style="width: {{ submission.suspicion_score }}%;"></div>
+                    </div>
+                    <div class="flex gap-3 text-muted" style="font-size: var(--font-xs);">
+                        <span>🔄 Переключений: {{ submission.tab_switches }}</span>
+                        <span>⛶ Fullscreen: {{ submission.fullscreen_exits }}</span>
+                        <span>🔧 DevTools: {{ submission.devtools_attempts }}</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-block">Сохранить оценку</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const codeElement = document.getElementById('student-code');
+    if (codeElement && typeof CodeMirror !== 'undefined') {
+        CodeMirror.fromTextArea(codeElement, {
+            mode: 'python',
+            theme: 'dracula',
+            lineNumbers: true,
+            readOnly: true,
+            lineWrapping: true
+        });
+    }
+});
+</script>
+{% endblock %}
