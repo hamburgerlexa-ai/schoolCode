@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Панель учителя{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div>
+        <h1 class="header-title">Панель учителя</h1>
+        <p class="header-subtitle">Управление классами, заданиями и проверкой работ</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <a href="{{ url_for('create_assignment') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Создать задание
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-4 gap-3 mb-4">
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: var(--info-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--info);">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <div style="font-size: 24px; font-weight: 700;">{{ class_groups|length }}</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Классов</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: var(--accent-glow); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent-primary);">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div>
+                <div style="font-size: 24px; font-weight: 700;">--</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Заданий</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: var(--warning-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--warning);">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div>
+                <div style="font-size: 24px; font-weight: 700;">{{ recent_submissions|length }}</div>
+                <div style="font-size: 13px; color: var(--text-muted);">На проверке</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 48px; height: 48px; background: var(--success-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--success);">
+                <i class="fas fa-check-double"></i>
+            </div>
+            <div>
+                <div style="font-size: 24px; font-weight: 700;">--</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Проверено</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+    <!-- Classes -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-users"></i> Мои классы</h3>
+            <a href="{{ url_for('manage_classes') }}" class="btn btn-sm btn-secondary">
+                Все классы <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        {% if class_groups %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for group in class_groups[:5] %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div>
+                    <div style="font-weight: 500;">{{ group.name }}</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">{{ group.description or 'Нет описания' }}</div>
+                </div>
+                <span class="badge badge-primary">{{ group.members|length }} учеников</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 32px; color: var(--text-muted);">
+            <i class="fas fa-inbox" style="font-size: 40px; margin-bottom: 16px; opacity: 0.5;"></i>
+            <p>У вас пока нет классов</p>
+            <a href="{{ url_for('create_class') }}" class="btn btn-primary btn-sm" style="margin-top: 16px;">
+                <i class="fas fa-plus"></i>
+                Создать класс
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Recent Submissions -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-clipboard-check"></i> Последние работы</h3>
+            <a href="{{ url_for('review_submissions') }}" class="btn btn-sm btn-secondary">
+                Все работы <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        {% if recent_submissions %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for submission in recent_submissions[:5] %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                <div style="flex: 1;">
+                    <div style="font-weight: 500;">{{ submission.assignment.title }}</div>
+                    <div style="font-size: 13px; color: var(--text-muted);">
+                        {{ submission.user.full_name }} • {{ submission.submitted_at.strftime('%d.%m %H:%M') }}
+                    </div>
+                </div>
+                <a href="{{ url_for('grade_submission', submission_id=submission.id) }}" class="btn btn-sm btn-primary">
+                    Проверить
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 32px; color: var(--text-muted);">
+            <i class="fas fa-inbox" style="font-size: 40px; margin-bottom: 16px; opacity: 0.5;"></i>
+            <p>Нет работ на проверку</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-bolt"></i> Быстрые действия</h3>
+    </div>
+    
+    <div class="grid grid-cols-4 gap-3">
+        <a href="{{ url_for('create_class') }}" class="card" style="text-align: center; padding: 24px; display: block;">
+            <div style="width: 48px; height: 48px; margin: 0 auto 12px; background: var(--accent-glow); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent-primary);">
+                <i class="fas fa-users"></i>
+            </div>
+            <div style="font-weight: 500;">Создать класс</div>
+            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Добавить новый класс</div>
+        </a>
+        
+        <a href="{{ url_for('create_topic') }}" class="card" style="text-align: center; padding: 24px; display: block;">
+            <div style="width: 48px; height: 48px; margin: 0 auto 12px; background: var(--info-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--info);">
+                <i class="fas fa-folder"></i>
+            </div>
+            <div style="font-weight: 500;">Создать тему</div>
+            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Новый раздел</div>
+        </a>
+        
+        <a href="{{ url_for('create_assignment') }}" class="card" style="text-align: center; padding: 24px; display: block;">
+            <div style="width: 48px; height: 48px; margin: 0 auto 12px; background: var(--success-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--success);">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div style="font-weight: 500;">Создать задание</div>
+            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Новая работа</div>
+        </a>
+        
+        <a href="{{ url_for('review_submissions') }}" class="card" style="text-align: center; padding: 24px; display: block;">
+            <div style="width: 48px; height: 48px; margin: 0 auto 12px; background: var(--warning-bg); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--warning);">
+                <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div style="font-weight: 500;">Проверить работы</div>
+            <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Оценить задания</div>
+        </a>
+    </div>
+</div>
+{% endblock %}

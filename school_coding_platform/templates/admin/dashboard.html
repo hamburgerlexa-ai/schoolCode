@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Админ-панель</h1>
+    <div class="flex gap-2">
+        <a href="{{ url_for('manage_users') }}" class="btn btn-primary">Управление пользователями</a>
+    </div>
+</div>
+
+<div class="stats-grid mt-4">
+    <div class="stat-card">
+        <div class="stat-label">Пользователи</div>
+        <div class="stat-value">{{ stats.users }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Классы</div>
+        <div class="stat-value">{{ stats.classes }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Темы</div>
+        <div class="stat-value">{{ stats.topics }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Задания</div>
+        <div class="stat-value">{{ stats.assignments }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Работы</div>
+        <div class="stat-value">{{ stats.submissions }}</div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h2>Быстрые действия</h2>
+    <div class="flex gap-2 mt-3">
+        <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-secondary">📚 Панель учителя</a>
+        <a href="{{ url_for('manage_classes') }}" class="btn btn-secondary">👥 Классы</a>
+        <a href="{{ url_for('manage_topics') }}" class="btn btn-secondary">📖 Темы</a>
+        <a href="{{ url_for('manage_assignments') }}" class="btn btn-secondary">📝 Задания</a>
+    </div>
+</div>
+{% endblock %}

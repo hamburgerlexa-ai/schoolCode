@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Результат работы{% endblock %}
+
+{% block content %}
+<div class="header">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="header-title">Результат работы</h1>
+            <p class="header-subtitle">{{ submission.assignment.title }}</p>
+        </div>
+    </div>
+    
+    <div>
+        {% if submission.status == 'draft' %}
+        <span class="badge badge-info">Черновик</span>
+        {% elif submission.status == 'submitted' %}
+        <span class="badge badge-warning">На проверке</span>
+        {% elif submission.status == 'graded' %}
+        <span class="badge badge-success">Проверено</span>
+        {% elif submission.status == 'expired' %}
+        <span class="badge badge-error">Просрочено</span>
+        {% else %}
+        <span class="badge">{{ submission.status|capitalize }}</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-3 gap-3 mb-4">
+    <!-- Status Card -->
+    <div class="card">
+        <div style="text-align: center; padding: 20px;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px;
+                {% if submission.status == 'graded' %}background: var(--success-bg); color: var(--success);
+                {% elif submission.status == 'submitted' %}background: var(--warning-bg); color: var(--warning);
+                {% elif submission.status == 'expired' %}background: var(--error-bg); color: var(--error);
+                {% else %}background: var(--info-bg); color: var(--info);{% endif %}">
+                {% if submission.status == 'graded' %}<i class="fas fa-check"></i>
+                {% elif submission.status == 'submitted' %}<i class="fas fa-clock"></i>
+                {% elif submission.status == 'expired' %}<i class="fas fa-exclamation"></i>
+                {% else %}<i class="fas fa-edit"></i>{% endif %}
+            </div>
+            <h3 style="margin-bottom: 8px;">
+                {% if submission.status == 'graded' %}Проверено
+                {% elif submission.status == 'submitted' %}На проверке
+                {% elif submission.status == 'expired' %}Просрочено
+                {% else %}Черновик{% endif %}
+            </h3>
+            <p style="color: var(--text-muted); font-size: 14px;">
+                {% if submission.submitted_at %}
+                Отправлено: {{ submission.submitted_at.strftime('%d.%m.%Y %H:%M') }}
+                {% else %}
+                Не отправлено
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Score Card -->
+    <div class="card">
+        <div style="text-align: center; padding: 20px;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: var(--accent-glow); color: var(--accent-primary); display: flex; align-items: center; justify-content: center; font-size: 28px;">
+                <i class="fas fa-star"></i>
+            </div>
+            <h3 style="margin-bottom: 8px;">
+                {% if submission.score is not none %}
+                    {{ submission.score }} / {{ submission.max_score }}
+                {% else %}
+                    -- / {{ submission.max_score }}
+                {% endif %}
+            </h3>
+            <p style="color: var(--text-muted); font-size: 14px;">
+                {% if submission.score is not none %}
+                    {{ ((submission.score / submission.max_score) * 100)|round|int }}%
+                {% else %}
+                    Ожидает проверки
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Suspicion Card -->
+    <div class="card">
+        <div style="text-align: center; padding: 20px;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; 
+                {% if submission.suspicion_score < 30 %}background: var(--success-bg); color: var(--success);
+                {% elif submission.suspicion_score < 60 %}background: var(--warning-bg); color: var(--warning);
+                {% else %}background: var(--error-bg); color: var(--error);{% endif %}
+                display: flex; align-items: center; justify-content: center; font-size: 28px;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 style="margin-bottom: 8px;">{{ submission.suspicion_score }}%</h3>
+            <p style="color: var(--text-muted); font-size: 14px;">Уровень подозрительности</p>
+            <div style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
+                <div>Переключений вкладок: {{ submission.tab_switches }}</div>
+                <div>Выходов из fullscreen: {{ submission.fullscreen_exits }}</div>
+                <div>Попыток DevTools: {{ submission.devtools_attempts }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Code View -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-code"></i> Ваш код</h3>
+    </div>
+    <div style="background: var(--bg-primary); border-radius: var(--radius-md); overflow: hidden;">
+        <pre style="margin: 0; padding: 20px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;"><code>{{ submission.code }}</code></pre>
+    </div>
+</div>
+
+<!-- Teacher Feedback -->
+{% if submission.feedback or submission.status == 'graded' %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-comment-alt"></i> Комментарий преподавателя</h3>
+        {% if submission.graded_at %}
+        <span style="font-size: 13px; color: var(--text-muted);">
+            Проверено: {{ submission.graded_at.strftime('%d.%m.%Y %H:%M') }}
+        </span>
+        {% endif %}
+    </div>
+    {% if submission.feedback %}
+    <div style="padding: 20px; background: var(--bg-tertiary); border-radius: var(--radius-md); line-height: 1.8;">
+        {{ submission.feedback|safe }}
+    </div>
+    {% else %}
+    <div style="padding: 20px; text-align: center; color: var(--text-muted);">
+        <i class="fas fa-inbox" style="font-size: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+        <p>Комментариев пока нет</p>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Timeline -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-history"></i> Хронология</h3>
+    </div>
+    <div style="padding: 20px 0;">
+        <div style="position: relative; padding-left: 32px;">
+            <div style="position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border-color);"></div>
+            
+            <div style="margin-bottom: 24px; position: relative;">
+                <div style="position: absolute; left: -32px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent-primary); border: 3px solid var(--bg-secondary);"></div>
+                <div style="font-weight: 500;">Начало выполнения</div>
+                <div style="font-size: 13px; color: var(--text-muted);">{{ submission.started_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            </div>
+            
+            {% if submission.submitted_at %}
+            <div style="margin-bottom: 24px; position: relative;">
+                <div style="position: absolute; left: -32px; width: 16px; height: 16px; border-radius: 50%; background: var(--warning); border: 3px solid var(--bg-secondary);"></div>
+                <div style="font-weight: 500;">Отправка работы</div>
+                <div style="font-size: 13px; color: var(--text-muted);">{{ submission.submitted_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            </div>
+            {% endif %}
+            
+            {% if submission.graded_at %}
+            <div style="position: relative;">
+                <div style="position: absolute; left: -32px; width: 16px; height: 16px; border-radius: 50%; background: var(--success); border: 3px solid var(--bg-secondary);"></div>
+                <div style="font-weight: 500;">Проверка преподавателем</div>
+                <div style="font-size: 13px; color: var(--text-muted);">{{ submission.graded_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

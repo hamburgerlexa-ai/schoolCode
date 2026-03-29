@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - School Coding Platform{% endblock %}
+
+{% block content_guest %}
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;">
+    <div class="card" style="width: 100%; max-width: 420px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+            <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 28px; color: white;">
+                <i class="fas fa-code"></i>
+            </div>
+            <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">School Coding Platform</h1>
+            <p style="color: var(--text-muted);">Войдите в свой аккаунт</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="form-group">
+                <label class="form-label" for="username">Имя пользователя</label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Введите имя пользователя" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="password">Пароль</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Введите пароль" required>
+            </div>
+            
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="remember" name="remember" style="width: 16px; height: 16px;">
+                <label for="remember" style="font-size: 14px; color: var(--text-secondary); cursor: pointer;">Запомнить меня</label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full" style="margin-bottom: 16px;">
+                <i class="fas fa-sign-in-alt"></i>
+                Войти
+            </button>
+        </form>
+        
+        <div style="text-align: center; padding-top: 16px; border-top: 1px solid var(--border-color);">
+            <p style="font-size: 14px; color: var(--text-muted);">
+                Нет аккаунта?
+                <a href="{{ url_for('register') }}" style="color: var(--accent-primary); font-weight: 500;">Зарегистрироваться</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

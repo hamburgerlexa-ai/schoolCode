@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}{% if assignment %}Редактировать задание{% else %}Новое задание{% endif %}{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>{% if assignment %}Редактировать задание{% else %}Новое задание{% endif %}</h1>
+    <a href="{{ url_for('manage_assignments') }}" class="btn btn-secondary">← Назад</a>
+</div>
+
+<div class="mt-4">
+    <form method="POST" class="card">
+        <div class="split-layout" style="height: auto;">
+            <div class="split-panel">
+                <h3 class="split-header">Основная информация</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Название *</label>
+                    <input type="text" name="title" class="form-control" 
+                           value="{{ assignment.title if assignment else '' }}" 
+                           required data-minlength="2" data-maxlength="200">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Тема</label>
+                    <select name="topic_id" class="form-control">
+                        <option value="">Без темы</option>
+                        {% for topic in topics %}
+                        <option value="{{ topic.id }}" 
+                                {% if assignment and assignment.topic_id == topic.id %}selected{% endif %}>
+                            {{ topic.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Класс</label>
+                    <select name="class_group_id" class="form-control">
+                        <option value="">Все классы</option>
+                        {% for class_group in class_groups %}
+                        <option value="{{ class_group.id }}" 
+                                {% if assignment and assignment.class_group_id == class_group.id %}selected{% endif %}>
+                            {{ class_group.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex gap-2" style="flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">Тип задания</label>
+                        <select name="assignment_type" class="form-control">
+                            <option value="practice" {% if assignment and assignment.assignment_type == 'practice' %}selected{% elif not assignment %}selected{% endif %}>Практика</option>
+                            <option value="independent" {% if assignment and assignment.assignment_type == 'independent' %}selected{% endif %}>Самостоятельная работа</option>
+                            <option value="control" {% if assignment and assignment.assignment_type == 'control' %}selected{% endif %}>Контрольная работа</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">Сложность</label>
+                        <select name="difficulty" class="form-control">
+                            <option value="easy" {% if assignment and assignment.difficulty == 'easy' %}selected{% elif not assignment %}selected{% endif %}>Лёгкая</option>
+                            <option value="medium" {% if assignment and assignment.difficulty == 'medium' %}selected{% endif %}>Средняя</option>
+                            <option value="hard" {% if assignment and assignment.difficulty == 'hard' %}selected{% endif %}>Сложная</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание задания</label>
+                    <textarea name="description" class="form-control" rows="6" 
+                              placeholder="Опишите задачу, требования и критерии оценки">{{ assignment.description if assignment else '' }}</textarea>
+                </div>
+
+                <div class="flex gap-2" style="flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">Длительность (мин)</label>
+                        <input type="number" name="duration_minutes" class="form-control" 
+                               value="{{ assignment.duration_minutes if assignment else 60 }}" 
+                               min="1" max="480">
+                    </div>
+
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">Макс. балл</label>
+                        <input type="number" name="max_score" class="form-control" 
+                               value="{{ assignment.max_score if assignment else 100 }}" 
+                               min="1" max="1000">
+                    </div>
+                </div>
+
+                <div class="flex gap-2" style="flex-wrap: wrap;">
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">Доступно с</label>
+                        <input type="datetime-local" name="available_from" class="form-control" 
+                               value="{{ assignment.available_from.strftime('%Y-%m-%dT%H:%M') if assignment and assignment.available_from else '' }}">
+                    </div>
+
+                    <div class="form-group" style="flex: 1; min-width: 150px;">
+                        <label class="form-label">Дедлайн</label>
+                        <input type="datetime-local" name="available_until" class="form-control" 
+                               value="{{ assignment.available_until.strftime('%Y-%m-%dT%H:%M') if assignment and assignment.available_until else '' }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" name="is_published" value="1" 
+                               {% if assignment and assignment.is_published %}checked{% endif %}>
+                        Опубликовать (сделать доступным для учеников)
+                    </label>
+                </div>
+            </div>
+
+            <div class="split-panel">
+                <h3 class="split-header">Шаблон кода</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">Язык программирования</label>
+                    <select name="language" class="form-control" id="language-select">
+                        <option value="python" {% if assignment and assignment.language == 'python' %}selected{% endif %}>Python</option>
+                        <option value="javascript" {% if assignment and assignment.language == 'javascript' %}selected{% endif %}>JavaScript</option>
+                        <option value="java" {% if assignment and assignment.language == 'java' %}selected{% endif %}>Java</option>
+                        <option value="cpp" {% if assignment and assignment.language == 'cpp' %}selected{% endif %}>C++</option>
+                        <option value="csharp" {% if assignment and assignment.language == 'csharp' %}selected{% endif %}>C#</option>
+                        <option value="go" {% if assignment and assignment.language == 'go' %}selected{% endif %}>Go</option>
+                        <option value="rust" {% if assignment and assignment.language == 'rust' %}selected{% endif %}>Rust</option>
+                        <option value="php" {% if assignment and assignment.language == 'php' %}selected{% endif %}>PHP</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Стартовый код</label>
+                    <textarea name="starter_code" id="starter-code" class="form-control" rows="20" 
+                              style="font-family: monospace;">{{ assignment.starter_code if assignment else '' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Пример решения (для учителя)</label>
+                    <textarea name="solution_code" class="form-control" rows="8" 
+                              style="font-family: monospace;" 
+                              placeholder="Введите эталонное решение для проверки">{{ assignment.solution_code if assignment else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary">
+                {% if assignment %}Сохранить изменения{% else %}Создать задание{% endif %}
+            </button>
+            <a href="{{ url_for('manage_assignments') }}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const languageSelect = document.getElementById('language-select');
+    let codeEditor = null;
+    
+    function getMode(language) {
+        const modes = {
+            'python': 'python',
+            'javascript': 'javascript',
+            'java': 'text/x-java',
+            'cpp': 'text/x-c++src',
+            'csharp': 'text/x-csharp',
+            'go': 'go',
+            'rust': 'rust',
+            'php': 'application/x-httpd-php'
+        };
+        return modes[language] || 'python';
+    }
+    
+    function initEditor() {
+        const textarea = document.getElementById('starter-code');
+        if (codeEditor) {
+            codeEditor.toTextArea();
+        }
+        
+        codeEditor = CodeMirror.fromTextArea(textarea, {
+            mode: getMode(languageSelect.value),
+            theme: 'dracula',
+            lineNumbers: true,
+            lineWrapping: true,
+            indentUnit: 4,
+            tabSize: 4,
+            autoCloseBrackets: true,
+            matchBrackets: true
+        });
+        
+        codeEditor.on('change', function() {
+            codeEditor.save();
+        });
+    }
+    
+    languageSelect.addEventListener('change', function() {
+        if (codeEditor) {
+            const value = codeEditor.getValue();
+            initEditor();
+            codeEditor.setValue(value);
+        }
+    });
+    
+    initEditor();
+});
+</script>
+{% endblock %}
